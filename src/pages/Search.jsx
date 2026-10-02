@@ -2,46 +2,54 @@ import { JobFilter } from '../components/JobFilter'
 import { Pagination } from '../components/Pagination'
 import { JobList } from '../components/JobList'
 import { useState, useEffect } from 'react'
-import jobs from '../data.json'
+
 
 const RESULT_PER_PAGES = 5
 
-export function SearchPage() {
+
+const useFilters = () => {
+
+  const url = "https://jscamp-api.vercel.app/api/jobs"
+
   const [filters, setFilters] = useState({
     technology: '',
     location: '',
     level: ''
   })
+
   const [textToFilter, setTextToFilter] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
 
   const [jobs, setJobs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [total, setTotal] = useState(0)
 
-  const jobsFilteredByFilters = jobs.filter(job => {
- 
-  const matchTechnology = filters.technology === '' || 
-    job.data.technology.map(tech => tech.toLowerCase()).includes(filters.technology.toLowerCase());
+  useEffect(() => {
+    console.log("ejecucion")
+    async function fetchJobs() {
+      try {
 
-  const matchLocation = filters.location === '' || 
-    job.ubicacion.toLowerCase() === filters.location.toLowerCase();
-    
-  const matchLevel = filters.level === '' || 
-    job.data.nivel.toLowerCase() === filters.level.toLowerCase();
+        setLoading(true)
+        const response = await fetch(url)
+        const json = await response.json()
+      
+        setJobs(json.data)
+        setTotal(json.total)
 
-  return matchTechnology && matchLocation && matchLevel;
-})
+      } catch (error) {
+        console.error('Error feetching jobs: ', error)
+        setLoading(false)
+      } finally {
+      // Este bloque SIEMPRE se ejecuta al terminar la petición
+      setLoading(false)
+      console.log(loading)
+    }
+    }
+    fetchJobs()
+  }, [])
 
-  const jobsWithFilter = textToFilter === '' 
-    ? jobsFilteredByFilters
-    : jobsFilteredByFilters.filter(job => job.titulo.toLowerCase().includes(textToFilter.toLowerCase()))
-
-  const totalPages = Math.ceil(jobsWithFilter.length / RESULT_PER_PAGES)
-
-  const PagesResults = jobsWithFilter.slice(
-    (currentPage - 1) * RESULT_PER_PAGES,
-      (currentPage - 1) * RESULT_PER_PAGES + RESULT_PER_PAGES
-  )
-
+  const totalPages = Math.ceil(jobs.length / RESULT_PER_PAGES)
+  
   const handlePage = (page) => {
     setCurrentPage(page)
   }
@@ -56,22 +64,47 @@ export function SearchPage() {
         setTextToFilter(newText)
         setCurrentPage(1)
   }
-
-  return (
-    <>
-  <main>
-      <JobFilter onSearch={handleSearch} onTextFilter={handleTextFilter}/>
-      <JobList jobs={PagesResults} /> 
-  
-      <Pagination 
-        onPage={handlePage} 
-        currentPage={currentPage} 
-        setCurrentPage={setCurrentPage}
-        totalPages={totalPages}
-      />
-  </main>
-  </>
-  )
-  
+  return {
+    loading,
+    jobs,
+    totalPages,
+    currentPage,
+    total,
+    handlePage,
+    handleSearch,
+    handleTextFilter
+  }
 }
 
+export function SearchPage() {
+  const {
+    loading,
+    jobs,
+    total,
+    totalPages,
+    currentPage,
+    handlePage,
+    handleSearch,
+    handleTextFilter
+  } = useFilters()
+
+  return (
+    <main>
+      <JobFilter onSearch={handleSearch} onTextFilter={handleTextFilter} />
+
+      {/* Si está cargando o jobs aún no tiene datos válidos, no renderizamos JobList */}
+      {loading ? (
+        <p>Cargando empleos...</p>
+      ) : (
+        /* Asegúrate de pasar 'jobs' directamente, o 'jobs?.data' si la API devuelve un objeto */
+        <JobList jobs={jobs} />
+      )}
+
+      <Pagination 
+        onPage={handlePage} 
+        currentPage={currentPage}
+        totalPages={totalPages}
+      />
+    </main>
+  )
+}
