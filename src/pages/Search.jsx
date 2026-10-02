@@ -30,6 +30,10 @@ const useFilters = () => {
       try {
 
         setLoading(true)
+
+        const params = new URLSearchParams()
+        if (textToFilter) params.append('text', textToFilter)
+
         const response = await fetch(url)
         const json = await response.json()
       
@@ -91,15 +95,11 @@ export function SearchPage() {
   return (
     <main>
       <JobFilter onSearch={handleSearch} onTextFilter={handleTextFilter} />
-
-      {/* Si está cargando o jobs aún no tiene datos válidos, no renderizamos JobList */}
-      {loading ? (
-        <p>Cargando empleos...</p>
-      ) : (
-        /* Asegúrate de pasar 'jobs' directamente, o 'jobs?.data' si la API devuelve un objeto */
-        <JobList jobs={jobs} />
-      )}
-
+      
+            { 
+              loading ? <p>Cargando empleos</p> : <JobList jobs={jobs} /> 
+          }
+  
       <Pagination 
         onPage={handlePage} 
         currentPage={currentPage}
