@@ -1,35 +1,66 @@
 import { useId, useState } from 'react'
 
-export function JobFilter( { onSearch, onTextFilter }) {
+let timeoutId = null
 
+const useSearchForm = ({ onSearch, onTextFilter, resetFilter, idTechnology, idLocation, idLevel, idText }) => {
+    const [searchInputText, setSearchInputText] = useState("")
 
-    const searchText = useId()
-    const searchTecnology = useId()
-    const searchLocation = useId()
-    const searchLevel = useId()
 
     const handleSubmit = (e) =>  {
         e.preventDefault()
       
         const formData = new FormData(e.currentTarget)
+
+        if (e.target.name === idText) return
+
         const filters = {
-            search: formData.get(searchText),
-            technology:  formData.get(searchTecnology),
-            location:  formData.get(searchLocation),
-            level:  formData.get(searchLevel)
+            technology:  formData.get(idTechnology),
+            location:  formData.get(idLocation),
+            level:  formData.get(idLevel)
         }
 
         onSearch(filters)
     }
-
-
-
+    
     const handleTextChange = (e) => {
         const text = e.target.value
-        onTextFilter(text)
+        setSearchInputText(text)
+
+        //DEBOUNCE
+
+        if (timeoutId) {
+            clearTimeout(timeoutId)
+        }
+        timeoutId = setTimeout(() => {
+            onTextFilter(text)
+        }, 500)
+        
     }
 
+    const handleClick = (e) => {
+        e.preventDefault
+        resetFilter()
+    }
 
+    return {
+        searchInputText,
+        handleSubmit,
+        handleTextChange,
+        handleClick
+    }
+
+}
+
+export function JobFilter( { onSearch, onTextFilter, resetFilter }) {
+
+    const idText = useId()
+    const idTechnology = useId()
+    const idLocation = useId()
+    const idLevel = useId()
+
+    const { handleTextChange, handleSubmit, handleClick } = useSearchForm(
+        { onSearch, onTextFilter, resetFilter, idTechnology, idLocation, idLevel, idText }
+    )
 
     return (
         <section>
@@ -45,12 +76,12 @@ export function JobFilter( { onSearch, onTextFilter }) {
                     <path d="M21 21l-6 -6" />
                 </svg>
 
-                <input name={searchText} onChange={handleTextChange} id="empleos-search-input" type="text"
+                <input name={idText} onChange={handleTextChange} id="empleos-search-input" type="text"
                     placeholder="Buscar trabajos, empresas o habilidades"/>
             </div>
 
-            <div className="search-filters">
-            <select name={searchTecnology} id="filter-technology">
+            <div className="search-filters" style={{display: 'flex', flexDirection: 'row'}}>
+            <select name={idTechnology} id="filter-technology">
                 <option value="">Tecnología</option>
                 <optgroup label="Tecnologías populares">
                 <option value="javascript">JavaScript</option>
@@ -68,7 +99,7 @@ export function JobFilter( { onSearch, onTextFilter }) {
                 <option value="php">PHP</option>
             </select>
 
-            <select name={searchLocation} id="filter-location">
+            <select name={idLocation} id="filter-location">
                 <option value="">Ubicación</option>
                 <option value="remoto">Remoto</option>
                 <option value="cdmx">Ciudad de México</option>
@@ -77,13 +108,16 @@ export function JobFilter( { onSearch, onTextFilter }) {
                 <option value="barcelona">Barcelona</option>
             </select>
 
-            <select name={searchLevel} id="filter-experience-level">
+            <select name={idLevel} id="filter-experience-level">
                 <option value="">Nivel de experiencia</option>
                 <option value="junior">Junior</option>
                 <option value="mid-level">Mid-level</option>
                 <option value="senior">Senior</option>
                 <option value="lead">Lead</option>
             </select>
+       
+                <button onClick={handleClick}>Limpiar filtros</button>
+                
         </div>
       </form>
 

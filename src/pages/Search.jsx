@@ -25,7 +25,6 @@ const useFilters = () => {
   const [total, setTotal] = useState(0)
 
   useEffect(() => {
-    console.log("ejecucion")
     async function fetchJobs() {
       try {
 
@@ -33,8 +32,18 @@ const useFilters = () => {
 
         const params = new URLSearchParams()
         if (textToFilter) params.append('text', textToFilter)
+        if (filters.technology) params.append('technology', filters.technology)
+        if (filters.location) params.append('type', filters.location)
+        if (filters.level) params.append('level', filters.level)
 
-        const response = await fetch(url)
+
+        const offset = (currentPage - 1) * RESULT_PER_PAGES
+        params.append('limit', RESULT_PER_PAGES)
+        params.append('offset', offset)
+
+        const queryParams =  params.toString()  
+
+        const response = await fetch(`${url}?${queryParams}`)
         const json = await response.json()
       
         setJobs(json.data)
@@ -44,15 +53,13 @@ const useFilters = () => {
         console.error('Error feetching jobs: ', error)
         setLoading(false)
       } finally {
-      // Este bloque SIEMPRE se ejecuta al terminar la petición
       setLoading(false)
-      console.log(loading)
     }
     }
     fetchJobs()
-  }, [])
+  }, [filters, textToFilter, currentPage])
 
-  const totalPages = Math.ceil(jobs.length / RESULT_PER_PAGES)
+  const totalPages = Math.ceil(total / RESULT_PER_PAGES)
   
   const handlePage = (page) => {
     setCurrentPage(page)
@@ -61,19 +68,29 @@ const useFilters = () => {
   const handleSearch = (filters) => {
     setCurrentPage(1)
     setFilters(filters)
-    console.log(filters)
   }
 
   const handleTextFilter = (newText) => {
-        setTextToFilter(newText)
-        setCurrentPage(1)
+    setTextToFilter(newText)
+    setCurrentPage(1)
   }
+
+  const handleResetFilter = () => {
+    setFilters({
+    technology: '',
+    location: '',
+    level: ''
+  })
+
+  }
+
   return {
     loading,
     jobs,
     totalPages,
     currentPage,
     total,
+    handleResetFilter,
     handlePage,
     handleSearch,
     handleTextFilter
@@ -84,17 +101,19 @@ export function SearchPage() {
   const {
     loading,
     jobs,
-    total,
     totalPages,
     currentPage,
+    handleResetFilter,
     handlePage,
     handleSearch,
     handleTextFilter
   } = useFilters()
 
+
+
   return (
     <main>
-      <JobFilter onSearch={handleSearch} onTextFilter={handleTextFilter} />
+      <JobFilter onSearch={handleSearch} onTextFilter={handleTextFilter} resetFilter={handleResetFilter}/>
       
             { 
               loading ? <p>Cargando empleos</p> : <JobList jobs={jobs} /> 
