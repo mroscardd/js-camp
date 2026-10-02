@@ -1,0 +1,32 @@
+.pagination {
+  display: flex;
+  list-style: none;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-block :2rem;
+
+
+  a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 4px;
+  transition: all .3s;
+  &:hover, &:focus {
+    background-color: var(--text-primary);
+  }
+
+  &:active {
+    transform: scale(0.90)
+  }
+
+
+}     
+}
+
+.isActive {
+    background-color: var(--primary-light);
+    pointer-events: none;
+  }
