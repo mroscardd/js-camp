@@ -1,22 +1,25 @@
-import { Link } from "./Link"
+import { Link } from "./Link";
 
-export function Header() {
-    return (
-    <>
+export function Header () {
+  return (
     <header>
-        <Link href="/" style={{textDecoration: 'none'}}><h2>DevJobs</h2></Link>
-        <nav>
-        <a href="./index.html">Inicio</a>
-        <Link href="./search">Empleos</Link>
-        </nav>
+      <Link href='/' style={{ textDecoration: 'none' }}>
+        <h1 style={{ color: 'white' }}>
+            <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+              viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            DevJobs
+        </h1>
+      </Link>
 
-        <div>
-        <dev-avatar
-            service="github"
-            username="mroscardd">
-        </dev-avatar>
-        </div>
-    </header>   
-    </> 
-    )
+      <nav>
+        <Link href="/search">Empleos</Link>
+
+        <a href='/search'>Sin SPA</a>
+      </nav>
+
+    </header>
+  )
 }
